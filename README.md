@@ -30,19 +30,16 @@ You are now ready to go !
 
 ## Usage
 
-First, you need to edit our php-mailjet-v3-simple.class.php file to assign your API keys to the variables ```$apiKey``` and ```$secretKey``` on lines 23 and 24 between simple quotes.
-You can find this keys in your Mailjet account here : https://app.mailjet.com/account/api_keys
-
-Then, in your mailjetapi.php file, you need to include our php class :
+In your mailjetapi.php file, you need to include our php class :
 
 ```php
 include("php-mailjet-v3-simple.class.php");
 ```
 **Be Careful :** Make sure that both mailjetapi.php and php-mailjet-v3-simple.class.php files are in the same folder to make this include work
 
-Now you can start working with the mailjetapi.php file by creating a new Mailjet object :
+Now you can start working with the mailjetapi.php file by creating a new Mailjet object with your api key and secret key (you can find these at https://app.mailjet.com/account/api_keys):
 ```php
-$mj = new Mailjet();
+$mj = new Mailjet( $apiKey, $secretKey );
 ```
 
 This basically starts the engine. Now what you're going to do next depends on what you want to GET, POST, PUT or DELETE from the Mailjet servers through the API.
@@ -73,9 +70,9 @@ function sendEmail() {
     $result = $mj->sendEmail($params);
 
     if ($mj->_response_code == 200)
-	   echo "success - email sent";
+       echo "success - email sent";
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -97,9 +94,9 @@ function sendEmailWithAttachments() {
     $result = $mj->sendEmail($params);
 
     if ($mj->_response_code == 200)
-	   echo "success - email sent";
+       echo "success - email sent";
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -115,15 +112,15 @@ function sendEmailWithInlineAttachments() {
         "to" => "mr.mailjet@example.com",
         "subject" => "Hello World!",
         "html" => "<html>Greetings from Mailjet <img src=\"cid:photo1.jpg\"><img src=\"cid:photo2.jpg\"></html>",
-	"inlineattachment" => array("@/path/to/photo1.jpg", "@/path/to/photo2.jpg")
+    "inlineattachment" => array("@/path/to/photo1.jpg", "@/path/to/photo2.jpg")
     );
 
     $result = $mj->sendEmail($params);
 
     if ($mj->_response_code == 200)
-	   echo "success - email sent";
+       echo "success - email sent";
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -174,9 +171,9 @@ function listContacts()
     $result = $mj->contact();
 
     if ($mj->_response_code == 200)
-	   echo "success - listed contacts";
+       echo "success - listed contacts";
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -185,22 +182,22 @@ function listContacts()
 - A function to update your contactData resource with ID ```$id```, using arrays :
 ```php
 function updateContactData($id) {
-	$mj = new Mailjet();
-	$data = array(array('Name' => 'lastname', 'Value' => 'Jet'), array('Name' => 'firstname', 'Value' => 'Mail'));
-	$params = array(
-		'ID' => $id,
-		'Data' => $data,
-		'method' => 'PUT'
-	);
+    $mj = new Mailjet();
+    $data = array(array('Name' => 'lastname', 'Value' => 'Jet'), array('Name' => 'firstname', 'Value' => 'Mail'));
+    $params = array(
+        'ID' => $id,
+        'Data' => $data,
+        'method' => 'PUT'
+    );
 
-	$result = $mj->contactdata($params);
+    $result = $mj->contactdata($params);
 
-	if ($mj->_response_code == 200)
+    if ($mj->_response_code == 200)
        echo "success - data changed";
     else
        echo "error - ".$mj->_response_code;
 
-	return $result;
+    return $result;
 }
 ```
 
@@ -209,16 +206,16 @@ function updateContactData($id) {
 function createList($Lname) {
     $mj = new Mailjet();
     $params = array(
-    	"method" => "POST",
-    	"Name" => $Lname
+        "method" => "POST",
+        "Name" => $Lname
     );
 
     $result = $mj->contactslist($params);
 
     if ($mj->_response_code == 201)
-	   echo "success - created list ".$Lname;
+       echo "success - created list ".$Lname;
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -229,16 +226,16 @@ function createList($Lname) {
 function getList($listID) {
     $mj = new Mailjet();
     $params = array(
-    	"method" => "VIEW",
-    	"ID" => $listID
+        "method" => "VIEW",
+        "ID" => $listID
     );
 
     $result = $mj->contactslist($params);
 
     if ($mj->_response_code == 200)
-	   echo "success - got list ".$listID;
+       echo "success - got list ".$listID;
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -251,16 +248,16 @@ Note : You can use unique fields of resources instead of IDs, like
 function createContact($Cemail) {
     $mj = new Mailjet();
     $params = array(
-    	"method" => "POST",
-    	"Email" => $Cemail
+        "method" => "POST",
+        "Email" => $Cemail
     );
 
     $result = $mj->contact($params);
 
     if ($mj->_response_code == 201)
-	   echo "success - created contact ".$Cname;
+       echo "success - created contact ".$Cname;
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -271,17 +268,18 @@ function createContact($Cemail) {
 function addContactToList($contactID, $listID) {
     $mj = new Mailjet();
     $params = array(
-    	"method" => "POST",
-    	"ContactID" => $contactID,
-    	"ListID" => $listID
+        "method" => "POST",
+        "ContactID" => $contactID,
+        "ListID" => $listID,
+        "IsActive" => "True"
     );
 
     $result = $mj->listrecipient($params);
 
     if ($mj->_response_code == 201)
-	   echo "success - contact ".$contactID." added to the list ".$listID;
+       echo "success - contact ".$contactID." added to the list ".$listID;
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
     return $result;
 }
@@ -292,17 +290,165 @@ function addContactToList($contactID, $listID) {
 function deleteList($listID) {
     $mj = new Mailjet();
     $params = array(
-    	"method" => "DELETE",
-    	"ID" => $listID
+        "method" => "DELETE",
+        "ID" => $listID
     );
 
     $result = $mj->contactslist($params);
 
     if ($mj->_response_code == 204)
-	   echo "success - deleted list";
+       echo "success - deleted list";
     else
-	   echo "error - ".$mj->_response_code;
+       echo "error - ".$mj->_response_code;
 
+    return $result;
+}
+```
+
+- A function to get unsubscribed contact(s) from a list with ID ```$listID``` :
+```php
+function getUnsubscribedContactsFromList($listID) {
+	$mj = new Mailjet();
+	
+	$params = array(
+		"method" => "GET",
+		"ContactsList" => $listID,
+		"Unsub" => true
+	);
+	
+	$result = $mj->listrecipient($params);
+	
+    if ($mj->_response_code == 200)
+       echo "success - got unsubscribed contact(s) ";
+    else
+       echo "error - ".$mj->_response_code;
+   
+	return $result;   
+}
+```
+
+- A function to get a contact with ID ```$contactID``` :
+```php
+function getContact($contactID) {
+    $mj = new Mailjet();
+    $params = array(
+        "method" => "VIEW",
+        "ID" => $contactID
+    );
+
+    $result = $mj->contact($params);
+
+    if ($mj->_response_code == 200)
+       echo "success - got contact ".$contactID;
+    else
+       echo "error - ".$mj->_response_code;
+
+    return $result;
+}
+```
+Note : You can use unique fields of resources instead of IDs, like
+```"unique" => "test@gmail.com"``` in your ```params``` array for this example
+
+### Newsletters
+
+You can use the ```DetailContent``` action to manage the content of a newsletter, in Text and Html.
+It has two properties : ```Text-part``` and ```Html-part```.
+You can use ```GET```, ```POST```, ```PUT``` and ```DELETE``` both  requests on this action :
+* ```GET``` : you get the ```Text-part``` and ```Html-part``` properties of a newsletter
+* ```POST``` : update the content of ```Text-part``` and ```Html-part```. If you specify only one, the other will be emptied
+* ```PUT``` : update the content of ```Text-part``` and ```Html-part```. You can specify only one, it will not empty the other one
+* ```DELETE``` : update the content of ```Text-part``` and ```Html-part``` and put both to empty.
+
+Example with a ```GET``` on ```DetailContent``` :
+
+```php
+function getNewsletterDetailcontent($newsletter_id) {
+    $mj = new Mailjet('', '');
+    $params = array(
+        "method" => "GET",
+        "ID" => $newsletter_id
+    );
+
+    $result = $mj->newsletterDetailContent($params);
+
+    if ($mj->_response_code == 200)
+        echo "success - got content for the newsletter ". $newsletter_id;
+    else
+        echo "error - ".$mj->_response_code;
+    
+    return $result;
+}
+```
+
+Use the ```schedule``` action to send a newsletter later.
+You just need to perform a ```POST``` request to schedule a new sending and to fill the ```date``` property with a Timestamp format in ISO 8601 : http://www.iso.org/iso/home/standards/iso8601.htm
+You can also ```DELETE``` a schedule
+Here is an example :
+
+```php
+function scheduleNewsletter($newsletter_id) {
+    $mj = new Mailjet('', '');
+    $params = array(
+        "method" => "POST",
+        "ID" => $newsletter_id,
+        "date" => "2014-11-25T10:12:59Z"
+    );
+
+    $result = $mj->newsletterSchedule($params);
+
+    if ($mj->_response_code == 201)
+        echo "success - schedule done for the newsletter ". $newsletter_id;
+    else
+        echo "error - ".$mj->_response_code;
+    
+    return $result;
+}
+```
+
+To send a newsletter immediately, you have two possibilities :
+* ```POST``` a new schedule with a Timestamp which value is ```NOW```
+* use send (only ```POST``` is supported)
+For the second case, here is an example :
+
+```php
+function sendNewsletter($newsletter_id) {
+    $mj = new Mailjet('', '');
+    $params = array(
+        "method" => "POST",
+        "ID" => $newsletter_id
+    );
+
+    $result = $mj->newsletterSend($params);
+
+    if ($mj->_response_code == 201)
+        echo "success - newsletter ". $newsletter_id . " has been sent";
+    else
+        echo "error - ".$mj->_response_code;
+    
+    return $result;
+}
+```
+
+You can also test a newsletter by sending it to some specified recipients before making the real sending.
+To do so, you have to perform a ```POST``` request on a newsletter with action ```test``` like in the following example :
+
+```php
+function testNewsletter($newsletter_id) {
+    $mj = new Mailjet('', '');
+    $recipients = array(array('Email' => 'mailjet@example.org', 'Name' => 'Mailjet'));
+    $params = array(
+        "method" => "POST",
+        "ID" => $newsletter_id,
+        "Recipients" => $recipients
+    );
+
+    $result = $mj->newsletterTest($params);
+
+    if ($mj->_response_code == 201)
+        echo "success - newsletter ". $newsletter_id . " has been sent";
+    else
+        echo "error - ".$mj->_response_code;
+    
     return $result;
 }
 ```

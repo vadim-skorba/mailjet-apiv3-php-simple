@@ -71,6 +71,7 @@ class Mailjet
 
         foreach ($fields as $field) {
             list($key, $value) = $field;
+            // attachment
             if (strpos($value, '@') === 0) {
                 preg_match('/^@(.*?)$/', $value, $matches);
                 list($dummy, $filename) = $matches;
@@ -110,14 +111,14 @@ class Mailjet
 
         # Request method, GET by default
         if (isset($params["method"])) {
-        	$request = strtoupper($params["method"]);
-        	unset($params['method']);
+            $request = strtoupper($params["method"]);
+            unset($params['method']);
         }
         else
-        	$request = 'GET';
+            $request = 'GET';
 
         # Request ID, empty by default
-        $id      = isset($params["ID"]) ? $params["ID"] : '';
+        $id = isset($params["ID"]) ? $params["ID"] : '';
 
         /*
             Using SendAPI without the "to" parameter but with "cc" AND/OR "bcc"
@@ -156,27 +157,62 @@ class Mailjet
         if ($resource == "sendEmail") {
             $this->call_url = "https://api.mailjet.com/v3/send/message";
         }
+        //
+        else if ($resource == "uploadCSVContactslistData") {
+          if (!empty($params['_contactslist_id'])) {
+            $contactslist_id = $params['_contactslist_id'];
+          }
+          else if (!empty($params['ID'])) {
+            $contactslist_id = $params['ID'];
+          }
+          $this->call_url = "https://api.mailjet.com/v3/DATA/contactslist/". $contactslist_id ."/CSVData/text:plain";
+        }
+        //
+        else if (($resource == "addHTMLbody") || ($resource == "getHTMLbody")) {
+            if (!empty($params['_newsletter_id'])) {
+                $newsletter_id = $params['_newsletter_id'];
+            }
+            else if (!empty($params['ID'])) {
+                $newsletter_id = $params['ID'];
+            }
+            $this->call_url = "https://api.mailjet.com/v3/DATA/NewsLetter/". $newsletter_id ."/HTML/text/html/LAST";
+        }
+        else if (($resource == "newsletterDetailContent") ||
+                 ($resource == "newsletterSend") ||
+                 ($resource == "newsletterSchedule") ||
+                 ($resource == "newsletterTest") ||
+                 ($resource == "newsletterStatus")) {
+            $matches = array();
+            preg_match('/newsletter([a-zA-Z]+)/', $resource, $matches);
+
+            $action = $matches[1];
+            $newsletter_id = $params['ID'];
+            $this->call_url = "https://api.mailjet.com/v3/REST/newsletter/". $newsletter_id ."/".$action;
+        }
         else {
             $this->call_url = $this->apiUrl . '/' . $resource;
         }
 
-        if ($request == "GET" && count($params) > 0) {
-            $this->call_url .= '?';
-        }
-
-        foreach ($params as $key => $value) {
-            if ($request == "GET")
+        if ($request == "GET") {
+            if (count($params) > 0)
             {
-                $query_string[$key] = $key . '=' . $value;
-                $this->call_url .= $query_string[$key] . '&';
+                $this->call_url .= '?';
+
+                foreach ($params as $key => $value) {
+                    // In a GET request, put an underscore char in front of params to avoid it being treated as a filter
+                    $firstChar = substr($key, 0, -(strlen($key) - 1));
+                    if (($firstChar != "_") && ($key != "ID"))
+                    {
+                        $query_string[$key] = $key . '=' . $value;
+                        $this->call_url .= $query_string[$key] . '&';
+                    }
+                }
+
+                $this->call_url = substr($this->call_url, 0, -1);
             }
         }
 
-        if ($request == "GET" && count($params) > 0) {
-            $this->call_url = substr($this->call_url, 0, -1);
-        }
-
-        if ($request == "VIEW" || $request == "DELETE" || $request == "PUT") {
+        if (($request == "VIEW" || $request == "DELETE" || $request == "PUT") && $resource != "addHTMLbody" && $resource != "uploadCSVContactslistData") {
             if ($id != '') {
                 $this->call_url .= '/' . $id;
             }
@@ -214,8 +250,33 @@ class Mailjet
             if ($resource == "sendEmail") {
                 $this->curl_setopt_custom_postfields($curl_handle, $params);
             }
+            else if ($resource == "addHTMLbody")
+            {
+                curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $params['html_content']);
+                curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array(
+                    'Content-Type: text/html'
+                ));
+            }
+            //
+            else if ($resource == "uploadCSVContactslistData")
+            {
+              curl_setopt($curl_handle, CURLOPT_BINARYTRANSFER, TRUE);
+              curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $params['csv_content']);
+              curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array(
+                'Content-Type: text/plain'
+              ));
+            }
+            //
             else
             {
+                if (($resource == "newsletterDetailContent") ||
+                    ($resource == "newsletterSend") ||
+                    ($resource == "newsletterSchedule") ||
+                    ($resource == "newsletterTest") ||
+                    ($resource == "newsletterStatus")) {
+                    unset($params['ID']);
+                }
+
                 curl_setopt($curl_handle, CURLOPT_POSTFIELDS, json_encode($params));
                 curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array(
                     'Content-Type: application/json'
@@ -245,10 +306,16 @@ class Mailjet
         curl_close($curl_handle);
 
         # Return response
-        $this->_response = json_decode($buffer);
+        if (($this->_response_code == 200) && ($resource == "getHTMLbody")) {
+            $this->_response = $buffer;
+        }
+        else
+        {
+            $this->_response = json_decode($buffer, false, 512, JSON_BIGINT_AS_STRING);
+        }
 
         if ($request == 'POST') {
-            return ($this->_response_code == 201) ? true : false;
+            return ($this->_response_code == 201 || $this->_response_code == 200) ? true : false;
         }
         if ($request == 'DELETE') {
             return ($this->_response_code == 204) ? true : false;
